@@ -14,6 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::create('request_responses', function (Blueprint $table) {
+            $table->id();
             $table->string('path');
             $table->string('content_type');
             $table->binary('data');
