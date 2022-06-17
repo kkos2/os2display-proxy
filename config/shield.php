@@ -26,6 +26,10 @@ return [
             env('SHIELD_USER'),
             env('SHIELD_PASSWORD'),
         ],
+        'nemdeling' => [
+            'nemdeling',
+            '$2y$10$4xICn9w1Asg.I0k.Ba8mZOLQTiYd4MM8R3T/g8Bbsxzu0tI8lcm2m'
+        ]
     ],
 
 ];
