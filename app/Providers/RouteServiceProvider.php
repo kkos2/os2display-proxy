@@ -34,7 +34,8 @@ class RouteServiceProvider extends ServiceProvider
             ->where('request', '.+');
         Route::post('/{request}',
             [RequestResponseController::class, 'create'])
-            ->where('request', '.+');
+            ->where('request', '.+')
+            ->middleware('shield');
     }
 
     /**

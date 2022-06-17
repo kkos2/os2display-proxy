@@ -16,16 +16,24 @@ class RequestResponseTest extends TestCase
         $response->assertStatus(404);
     }
 
-    public function test_post_request_stores_request()
+    public function test_post_request_requires_authentication()
     {
         $response = $this->post('/some/path', [ 'key' => 'value' ]);
+
+        $response->assertStatus(401);
+    }
+
+
+    public function test_post_request_stores_request()
+    {
+        $response = $this->postJsonWithBasicAuth('/some/path', [ 'key' => 'value' ], [], 'local', 'local');
 
         $response->assertStatus(201);
     }
 
     public function test_get_request_retrieves_response()
     {
-        $this->postJson('/known/path', [ 'key' => 'value' ]);
+        $this->postJsonWithBasicAuth('/known/path', [ 'key' => 'value' ], [], 'local', 'local');
 
         $response = $this->getJson('/known/path');
 
@@ -34,7 +42,13 @@ class RequestResponseTest extends TestCase
     }
 
     public function test_responses_are_retrieved_by_content_type() {
-        $this->call('POST', '/xml/path', [], [], [], ['CONTENT_TYPE' => 'application/xml'], '<xml/>');
+        $this->call(
+            'POST',
+            '/xml/path',
+            [], [], [],
+            ['CONTENT_TYPE' => 'application/xml', 'PHP_AUTH_USER' => 'local', 'PHP_AUTH_PASSWORD' => 'local'],
+            '<xml/>'
+        );
         $response = $this->getJson('/xml/path');
 
         $response->assertStatus(404);
@@ -45,13 +59,46 @@ class RequestResponseTest extends TestCase
     }
 
     public function test_responses_can_be_updated() {
-        $this->postJson('/known/path', [ 'key' => 'value' ]);
-        $response = $this->postJson('/known/path', [ 'new key' => 'new value' ]);
+        $this->postJsonWithBasicAuth('/known/path', [ 'key' => 'value' ], [], 'local', 'local');
+        $response = $this->postJsonWithBasicAuth('/known/path', [ 'new key' => 'new value' ], [], 'local', 'local');
         $response->assertStatus(201);
 
         $response = $this->getJson('/known/path');
         $response->assertStatus(200);
         $response->assertJson([ 'new key' => 'new value' ]);
+    }
+
+    /**
+     * Test JSON posts with support for authentication.
+     *
+     * This is basically a copy of MakesHttpRequests::postJson() with a few
+     * arguments added.
+     */
+    public function postJsonWithBasicAuth($uri, array $data = [], array $headers = [], string $username, string $password) {
+        $files = $this->extractFilesFromDataArray($data);
+
+        $content = json_encode($data);
+
+        $headers = array_merge([
+            'CONTENT_LENGTH' => mb_strlen($content, '8bit'),
+            'CONTENT_TYPE' => 'application/json',
+            'Accept' => 'application/json',
+        ], $headers);
+
+        $server_vars = $this->transformHeadersToServerVars($headers) + [
+            'PHP_AUTH_USER' => $username,
+            'PHP_AUTH_PW' => $password
+        ];
+
+        return $this->call(
+            'POST',
+            $uri,
+            [],
+            $this->prepareCookiesForJsonRequest(),
+            $files,
+            $server_vars,
+            $content
+        );
     }
 
 }
