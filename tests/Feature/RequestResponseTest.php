@@ -44,4 +44,14 @@ class RequestResponseTest extends TestCase
         $response->assertSee('<xml/>', false);
     }
 
+    public function test_responses_can_be_updated() {
+        $this->postJson('/known/path', [ 'key' => 'value' ]);
+        $response = $this->postJson('/known/path', [ 'new key' => 'new value' ]);
+        $response->assertStatus(201);
+
+        $response = $this->getJson('/known/path');
+        $response->assertStatus(200);
+        $response->assertJson([ 'new key' => 'new value' ]);
+    }
+
 }
