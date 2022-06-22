@@ -43,13 +43,7 @@ class RequestResponseTest extends TestCase
     }
 
     public function test_responses_are_retrieved_by_content_type() {
-        $this->call(
-            'POST',
-            '/xml/path',
-            [], [], [],
-            ['CONTENT_TYPE' => 'application/xml', 'PHP_AUTH_USER' => 'local', 'PHP_AUTH_PASSWORD' => 'local'],
-            '<xml/>'
-        );
+        $this->postXmlWithBasicAuth('/xml/path', '<xml/>', [], 'local', 'local');
         $response = $this->getJson('/xml/path');
 
         $response->assertStatus(404);
@@ -97,6 +91,29 @@ class RequestResponseTest extends TestCase
             [],
             $this->prepareCookiesForJsonRequest(),
             $files,
+            $server_vars,
+            $content
+        );
+    }
+
+    public function postXmlWithBasicAuth(string $uri, string $content, array $headers = [], string $username, string $password) {
+        $headers = array_merge([
+            'CONTENT_LENGTH' => mb_strlen($content, '8bit'),
+            'CONTENT_TYPE' => 'application/xml',
+            'Accept' => 'application/xml',
+        ], $headers);
+
+        $server_vars = $this->transformHeadersToServerVars($headers) + [
+                'PHP_AUTH_USER' => $username,
+                'PHP_AUTH_PW' => $password
+            ];
+
+        return $this->call(
+            'POST',
+            $uri,
+            [],
+            $this->prepareCookiesForJsonRequest(),
+            [],
             $server_vars,
             $content
         );
