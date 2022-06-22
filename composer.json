@@ -11,6 +11,7 @@
         "laravel/sanctum": "^2.14.1",
         "laravel/tinker": "^2.7",
         "platformsh/laravel-bridge": "^2.2",
+        "servo/fluidxml": "^1.21",
         "vinkla/shield": "^8.0"
     },
     "require-dev": {
