@@ -6,6 +6,7 @@ use App\Models\RequestResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
+use function FluidXml\fluidxml;
 
 /**
  * Controller responsible for storing incoming POST requests and returning
@@ -29,7 +30,27 @@ class RequestResponseController extends Controller
             })
             ->firstOrFail();
 
-        return response($requestResponse->data)
+        $data = $requestResponse->data;
+        // The caller has requested a specific display/skærm.
+        // Remove items which do not specify belonging to that specific display.
+        if ($request->get('display')) {
+            // We use FluidXML and XPath for querying and DOM manipulation so
+            // this is only support for XML responses.
+            if ($requestResponse->content_type !== 'application/xml') {
+                return \response('Display filtering is only supported for XM responses', 400);
+            }
+
+            $data = fluidxml($data)
+                ->query('//item')
+                ->filter(function($i, \DOMNode $node) use ($request) {
+                    return fluidxml($node)
+                        ->query("//skærme/item[text() = '{$request->get('display')}']")
+                        ->size() > 0;
+                })
+                ->xml();
+        }
+
+        return response($data)
             ->header('Content-Type', $requestResponse->content_type)
             // Add the age header to help determine when an item was last
             // updated. This might help debugging.

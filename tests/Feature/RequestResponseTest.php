@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
+use function FluidXml\fluidxml;
 
 class RequestResponseTest extends TestCase
 {
@@ -61,6 +62,101 @@ class RequestResponseTest extends TestCase
         $response = $this->getJson('/known/path');
         $response->assertStatus(200);
         $response->assertJson([ 'new key' => 'new value' ]);
+    }
+
+    public function test_xml_responses_can_be_filtered_by_display() {
+        $xml = <<< XML
+<result is_array="true">
+	<item>
+		<startdate is_array="true">
+			<item>09.10.2022</item>
+		</startdate>
+		<enddate is_array="true">
+			<item>09.10.2022</item>
+		</enddate>
+		<time is_array="true">
+			<item>20:00 til 22:00</item>
+		</time>
+		<Nid>477</Nid>
+		<billede is_array="true">
+			<item>
+				<img src="https://kulturn.kk.dk/sites/default/files/2022-01/Sk%C3%A6rmbillede%202022-01-11%20kl.%2016.27.12_0.png" alt="" height="554" width="1200" title="" />
+			</item>
+		</billede>
+		<title>Dana Fuchs (US)</title>
+		<field_teaser>Glæd dig til at opleve en stemme, der tåler sammenligning med ikoner som Janis Joplin, Otis Redding and Mick Jagger. </field_teaser>
+		<skærme is_array="true">
+			<item>pilegaarden_screen01</item>
+			<item>pilegaarden_screen02</item>
+		</skærme>
+	</item>
+	<item>
+		<startdate is_array="true">
+			<item>28.10.2022</item>
+		</startdate>
+		<enddate is_array="true">
+			<item>28.10.2022</item>
+		</enddate>
+		<time is_array="true">
+			<item>10:00 til 10:45</item>
+		</time>
+		<Nid>698</Nid>
+		<billede is_array="true">
+			<item>
+				<img src="https://kulturn.kk.dk/sites/default/files/2022-06/Babymassage_1.png" alt="" height="517" width="689" title="" />
+			</item>
+		</billede>
+		<title>Kursus i Babymassage (2-6 måneder)</title>
+		<field_teaser>Kom og få en dejlig nærværende stund med dit barn.</field_teaser>
+		<skærme is_array="true">
+			<item>noerrebrohallen_screen01</item>
+			<item>noerrebrohallen_screen02</item>
+		</skærme>
+	</item>
+	<item>
+		<startdate is_array="true">
+			<item>16.06.2022</item>
+		</startdate>
+		<enddate is_array="true">
+			<item>16.06.2022</item>
+		</enddate>
+		<time is_array="true">
+			<item>14:00 til 16:00</item>
+		</time>
+		<Nid>700</Nid>
+		<billede is_array="true">
+			<item>
+				<img src="https://kulturn.kk.dk/sites/default/files/2022-06/jazz_lounge_0219-kopi.JPG" alt="" height="554" width="1198" title="" />
+			</item>
+		</billede>
+		<title>Jazz Lounge</title>
+		<field_teaser>Bestil en kop kaffe og få den serveret med en velspillet lydside!</field_teaser>
+		<skærme is_array="true">
+			<item>pilegaarden_screen01</item>
+		</skærme>
+	</item>
+</result>
+XML;
+
+        $this->postXmlWithBasicAuth('/xml/path', $xml, [], 'local', 'local');
+        $response = $this->get('/xml/path?display=pilegaarden_screen01');
+
+        $response->assertStatus(200);
+
+        $count = fluidxml($response->getContent())
+            ->query("//item[text() = 'pilegaarden_screen01']")
+            ->size();
+        $this->assertEquals(2, $count);
+
+        $count = fluidxml($response->getContent())
+            ->query("//item")
+            ->filter(function($i, \DOMNode $node) {
+                return fluidxml($node)
+                    ->query("//skærme/item[text() != 'pilegaarden_screen01']")
+                    ->size() > 0;
+            })
+            ->size();
+        $this->assertEquals(1, $count);
     }
 
     /**
