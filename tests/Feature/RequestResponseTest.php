@@ -159,6 +159,46 @@ XML;
         $this->assertEquals(1, $count);
     }
 
+    public function test_xml_filtering_returns_empty_response_for_unknown_displays() {
+        $xml = <<< XML
+<result is_array="true">
+	<item>
+		<startdate is_array="true">
+			<item>09.10.2022</item>
+		</startdate>
+		<enddate is_array="true">
+			<item>09.10.2022</item>
+		</enddate>
+		<time is_array="true">
+			<item>20:00 til 22:00</item>
+		</time>
+		<Nid>477</Nid>
+		<billede is_array="true">
+			<item>
+				<img src="https://kulturn.kk.dk/sites/default/files/2022-01/Sk%C3%A6rmbillede%202022-01-11%20kl.%2016.27.12_0.png" alt="" height="554" width="1200" title="" />
+			</item>
+		</billede>
+		<title>Dana Fuchs (US)</title>
+		<field_teaser>Glæd dig til at opleve en stemme, der tåler sammenligning med ikoner som Janis Joplin, Otis Redding and Mick Jagger. </field_teaser>
+		<skærme is_array="true">
+			<item>pilegaarden_screen01</item>
+			<item>pilegaarden_screen02</item>
+		</skærme>
+	</item>
+</result>
+XML;
+
+        $this->postXmlWithBasicAuth('/xml/path', $xml, [], 'local', 'local');
+        $response = $this->get('/xml/path?display=pilegaarden_screen03');
+
+        $response->assertStatus(200);
+
+        $count = fluidxml($response->getContent())
+            ->query("//item")
+            ->size();
+        $this->assertEquals(0, $count);
+    }
+    
     /**
      * Test JSON posts with support for authentication.
      *
