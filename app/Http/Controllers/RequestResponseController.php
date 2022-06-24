@@ -31,18 +31,24 @@ class RequestResponseController extends Controller
             ->firstOrFail();
 
         $data = $requestResponse->data;
-        // The caller has requested a specific display/skærm.
-        // Remove items which do not specify belonging to that specific display.
-        if ($request->get('display')) {
+        // The caller has requested a specific display/skærm or
+        // place/field_os2_house_list.
+        // Remove items which do not meet the filter.
+        if ($request->get('display') || $request->get('place')) {
             // We use FluidXML and XPath for querying and DOM manipulation so
             // this is only support for XML responses.
             if ($requestResponse->content_type !== 'application/xml') {
-                return \response('Display filtering is only supported for XM responses', 400);
+                return \response('Filtering is only supported for XM responses', 400);
             }
 
-            $data = fluidxml($data)
-                ->remove("/result/item[ not( .//skærme/item[ text() = '{$request->get('display')}' ] ) ]")
-                ->xml();
+            $xml = fluidxml($data);
+            if ($request->get('display')) {
+                $xml = $xml->remove("/result/item[ not( .//skærme/item[ text() = '{$request->get('display')}' ] ) ]");
+            }
+            if ($request->get('place')) {
+                $xml = $xml->remove("/result/item[ not( .//field_os2_house_list/item[ text() = '{$request->get('place')}' ] ) ]");
+            }
+            $data = $xml->xml();
         }
 
         return response($data)
