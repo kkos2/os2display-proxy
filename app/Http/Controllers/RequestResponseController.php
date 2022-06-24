@@ -41,12 +41,7 @@ class RequestResponseController extends Controller
             }
 
             $data = fluidxml($data)
-                ->query('//item')
-                ->filter(function($i, \DOMNode $node) use ($request) {
-                    return fluidxml($node)
-                        ->query("//skærme/item[text() = '{$request->get('display')}']")
-                        ->size() > 0;
-                })
+                ->remove("/result/item[ not( .//skærme/item[ text() = '{$request->get('display')}' ] ) ]")
                 ->xml();
         }
 
