@@ -294,6 +294,68 @@ XML;
         $this->assertEquals(1, $count);
     }
 
+    public function test_service_spots_xml_responses_can_be_filtered_by_display() {
+        $xml = <<< XML
+<result is_array="true">
+	<item>
+		<field_display_institution is_array="true">
+			<item>Demokratiets Hus</item>
+		</field_display_institution>
+		<nid>6</nid>
+		<title_field>Dette er en TEstServicemeddelelser 1</title_field>
+		<field_background_color>#1046e0</field_background_color>
+		<body>Her skriver vi op og ned</body>
+		<field_os2_display_list_spot is_array="true">
+			<item>demokratihus_screen01</item>
+		</field_os2_display_list_spot>
+	</item>
+	<item>
+		<field_display_institution is_array="true">
+			<item>Bellahøj Svømmestadion </item>
+		</field_display_institution>
+		<nid>7</nid>
+		<title_field>Test AService to</title_field>
+		<field_background_color>#2fd20f</field_background_color>
+		<body>Vi priøver igen er det rigtig fin eller hvordan ser det ud? Vi priøver igen er det rigtig fin eller hvordan ser det ud?</body>
+		<field_os2_display_list_spot is_array="true">
+			<item>bellahoejsvoem-screen01</item>
+		</field_os2_display_list_spot>
+	</item>
+	<item>
+		<field_display_institution is_array="true">
+			<item>Bellahøj Svømmestadion </item>
+		</field_display_institution>
+		<nid>8</nid>
+		<title_field>Hjalte tester på TEST</title_field>
+		<field_background_color>#802020</field_background_color>
+		<body>Her er en servicemeddelelse til Os2</body>
+		<field_os2_display_list_spot is_array="true">
+			<item>bellahoejsvoem-screen01</item>
+		</field_os2_display_list_spot>
+	</item>
+</result>
+XML;
+        $this->postXmlWithBasicAuth('/xml/path', $xml, [], 'local', 'local');
+
+        $response = $this->get('/xml/path?display=bellahoejsvoem-screen01');
+        $response->assertStatus(200);
+
+        $count = fluidxml($response->getContent())
+            ->query("//item[text() = 'bellahoejsvoem-screen01']")
+            ->size();
+        $this->assertEquals(2, $count);
+
+        $count = fluidxml($response->getContent())
+            ->query("//item")
+            ->filter(function($i, \DOMNode $node) {
+                return fluidxml($node)
+                        ->query("//field_os2_display_list_spot/item[text() != 'bellahoejsvoem-screen01']")
+                        ->size() > 0;
+            })
+            ->size();
+        $this->assertEquals(0, $count);
+    }
+
     /**
      * Test JSON posts with support for authentication.
      *

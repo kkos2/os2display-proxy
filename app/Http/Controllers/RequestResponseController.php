@@ -43,7 +43,14 @@ class RequestResponseController extends Controller
 
             $xml = fluidxml($data);
             if ($request->get('display')) {
-                $xml = $xml->remove("/result/item[ not( .//skærme/item[ text() = '{$request->get('display')}' ] ) ]");
+                // Events and service spots uses different field names to show
+                // which displays they belong to. Account for both.
+                $xml = $xml->remove("/result/item[
+                    not(
+                        ./skærme/item[ text() = '{$request->get('display')}' ] or
+                        ./field_os2_display_list_spot/item[ text() = '{$request->get('display')}' ]
+                    )
+                ]");
             }
             if ($request->get('place')) {
                 $xml = $xml->remove("/result/item[ not( .//field_os2_house_list/item[ text() = '{$request->get('place')}' ] ) ]");
