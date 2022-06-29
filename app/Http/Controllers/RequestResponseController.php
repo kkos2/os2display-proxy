@@ -53,7 +53,11 @@ class RequestResponseController extends Controller
                 ]");
             }
             if ($request->get('place')) {
-                $xml = $xml->remove("/result/item[ not( .//field_os2_house_list/item[ text() = '{$request->get('place')}' ] ) ]");
+                $xml = $xml->remove("/result/item[
+                    not(
+                        .//field_display_institution/item[ text() = '{$request->get('place')}' ]
+                    )
+                ]");
             }
             $data = $xml->xml();
         }

@@ -221,9 +221,9 @@ XML;
 		</billede>
 		<title>Dirty Fences (US) + De Høje Hæle</title>
 		<field_teaser>Rockfest du sent vil glemme!</field_teaser>
-		<field_os2_house_list is_array="true">
+		<field_display_institution is_array="true">
 			<item>Demokratiets Hus</item>
-		</field_os2_house_list>
+		</field_display_institution>
 	</item>
 	<item>
 		<startdate is_array="true">
@@ -243,9 +243,9 @@ XML;
 		</billede>
 		<title>Valient Thorr (US) + Liar Thief Bandit (SE)</title>
 		<field_teaser>Sveddryppende sommerrock!</field_teaser>
-		<field_os2_house_list is_array="true">
+		<field_display_institution is_array="true">
 			<item>Vanløse Hallerne</item>
-		</field_os2_house_list>
+		</field_display_institution>
 	</item>
 	<item>
 		<startdate is_array="true">
@@ -265,10 +265,10 @@ XML;
 		</billede>
 		<title>Melt-Banana (JP) + Uraño </title>
 		<field_teaser>Kult-rock fra Japan - og måske et af verdens vildeste liveshows - rammer Basement denne sommer!</field_teaser>
-		<field_os2_house_list is_array="true">
+		<field_display_institution is_array="true">
 			<item>Bellahøj Svømmestadion </item>
 			<item>Demokratiets Hus</item>
-		</field_os2_house_list>
+		</field_display_institution>
 	</item>
 </result>
 XML;
@@ -287,7 +287,7 @@ XML;
             ->query("//item")
             ->filter(function($i, \DOMNode $node) {
                 return fluidxml($node)
-                        ->query("//field_os2_house_list/item[text() != 'Demokratiets Hus']")
+                        ->query("//field_display_institution/item[text() != 'Demokratiets Hus']")
                         ->size() > 0;
             })
             ->size();
