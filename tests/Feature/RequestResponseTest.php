@@ -356,6 +356,99 @@ XML;
         $this->assertEquals(0, $count);
     }
 
+    public function test_event_results_are_sorted_by_date() {
+        $xml = <<< XML
+<result is_array="true">
+	<item>
+		<startdate is_array="true">
+			<item>28.07.2022</item>
+		</startdate>
+		<enddate is_array="true">
+			<item>29.07.2022</item>
+		</enddate>
+		<time is_array="true">
+			<item>19:00 til 00:00</item>
+		</time>
+		<Nid>65</Nid>
+		<billede is_array="true">
+			<item>
+				<img src="https://basement.kk.dk/sites/default/files/2022-05/dirty.png" alt="" height="1165" width="2212" title="" />
+			</item>
+		</billede>
+		<title>Dirty Fences (US) + De Høje Hæle</title>
+		<field_teaser>Rockfest du sent vil glemme!</field_teaser>
+		<field_display_institution is_array="true">
+			<item>Demokratiets Hus</item>
+		</field_display_institution>
+	</item>
+	<item>
+		<startdate is_array="true">
+			<item>20.07.2022</item>
+		</startdate>
+		<enddate is_array="true">
+			<item>21.07.2022</item>
+		</enddate>
+		<time is_array="true">
+			<item>19:00 til 01:00</item>
+		</time>
+		<Nid>58</Nid>
+		<billede is_array="true">
+			<item>
+				<img src="https://basement.kk.dk/sites/default/files/2022-04/vt.png" alt="" height="1165" width="2212" title="" />
+			</item>
+		</billede>
+		<title>Valient Thorr (US) + Liar Thief Bandit (SE)</title>
+		<field_teaser>Sveddryppende sommerrock!</field_teaser>
+		<field_display_institution is_array="true">
+			<item>Vanløse Hallerne</item>
+		</field_display_institution>
+	</item>
+	<item>
+		<startdate is_array="true">
+			<item>04.08.2022</item>
+		</startdate>
+		<enddate is_array="true">
+			<item>04.08.2022</item>
+		</enddate>
+		<time is_array="true">
+			<item>19:00 til 23:59</item>
+		</time>
+		<Nid>63</Nid>
+		<billede is_array="true">
+			<item>
+				<img src="https://basement.kk.dk/sites/default/files/2022-04/277741949_1022919355019562_3179308792317594551_n.jpg" alt="" height="1079" width="2048" title="" />
+			</item>
+		</billede>
+		<title>Melt-Banana (JP) + Uraño </title>
+		<field_teaser>Kult-rock fra Japan - og måske et af verdens vildeste liveshows - rammer Basement denne sommer!</field_teaser>
+		<field_display_institution is_array="true">
+			<item>Bellahøj Svømmestadion </item>
+			<item>Demokratiets Hus</item>
+		</field_display_institution>
+	</item>
+</result>
+XML;
+
+        // It is important that the path is /events since we only sort for
+        // that path
+        $this->postXmlWithBasicAuth('/events', $xml, [], 'local', 'local');
+        $response = $this->get('/events');
+
+        $xml = fluidxml($response->getContent());
+        $this->assertEquals(
+            'Valient Thorr (US) + Liar Thief Bandit (SE)',
+            $xml->query('/result/item[1]/title')->current()->nodeValue
+        );
+        $this->assertEquals(
+            'Dirty Fences (US) + De Høje Hæle',
+            $xml->query('/result/item[2]/title')->current()->nodeValue
+        );
+        $this->assertEquals(
+            'Melt-Banana (JP) + Uraño ',
+            $xml->query('/result/item[3]/title')->current()->nodeValue
+        );
+    }
+
     /**
      * Test JSON posts with support for authentication.
      *
