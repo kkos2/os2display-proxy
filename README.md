@@ -83,6 +83,12 @@ available at `http://localhost`.
 You can modify the `.env` file to suite your needs e.g. change which port the
 service is exposed on.
 
+### XDebug
+
+Modify `docker-compose.yml` to support XDebug. For some reason [the default
+XDebug support by Sail](https://laravel.com/docs/9.x/sail#debugging-with-xdebug)
+does not work.
+
 ## Deployment
 
 When the proxy is deployed to Platform.sh you can push to the `main` branch of

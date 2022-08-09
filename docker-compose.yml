@@ -13,6 +13,9 @@ services:
         environment:
             WWWUSER: '${WWWUSER}'
             LARAVEL_SAIL: 1
+            # Uncomment these to support XDebug
+            #XDEBUG_MODE: develop,debug
+            #XDEBUG_CONFIG: 'client_host=host.docker.internal'
         volumes:
             - '.:/var/www/html'
         networks:
